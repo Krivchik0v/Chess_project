@@ -1,7 +1,7 @@
 ﻿#include<iostream>
 using namespace std;
 bool isPieceFree(char** arr, char piece, int FixedRow, int COL, char turn, int newFixedRow, int NewCOL, bool mateCheck = false);
-bool isLegalMove(char** arr, char piece, int FixedRow, int COL, int fieldSide, char turn, char moveType, int newFixedRow = 0, int NewCOL = 0);
+bool isLegalMove(char** arr, char piece, int FixedRow, int COL, int fieldSide, char turn, char moveType, int newFixedRow = 0, int NewCOL = 0, bool mateCheck = false);
 void generate(char* arr[]) {
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) { //fields
@@ -133,7 +133,7 @@ bool CheckMateCombo(char** arr, char turn, int kingX, int kingY, int enemyX, int
     char king;
     bool canMove = false;
     int index1, index2;
-    int startCOL, endCOL;
+    int startCOL, endCOL; char moveType;
     if (turn == 'w') {
         king = 'K';
     }
@@ -159,7 +159,7 @@ bool CheckMateCombo(char** arr, char turn, int kingX, int kingY, int enemyX, int
         startCOL = enemyY;
         endCOL = kingY;
     }
-    else if (abs(kingX - enemyX) == 2 && abs(kingY - enemyY) == 1 || abs(kingX - enemyX) == 1 && abs(kingY - enemyY) == 2){ //конь
+    else if (abs(kingX - enemyX) == 2 && abs(kingY - enemyY) == 1 || abs(kingX - enemyX) == 1 && abs(kingY - enemyY) == 2) { //конь
         mateType = 4;
         start = enemyX; s = enemyX;
         end = kingX; e = kingX;
@@ -190,41 +190,7 @@ bool CheckMateCombo(char** arr, char turn, int kingX, int kingY, int enemyX, int
               index2 = kingY;
           }*/
         helpCoordinate = start;
-        if (mateType == 3 || mateType == 4) {
-            helpCoordinate = startCOL;
-        }
-          // start = индекс i/j поля, end  = индекс короля
-        for (int i = 0; i < 8; i++) { //вертикаль
-            if (arr[i][helpCoordinate] == check('r') || arr[i][helpCoordinate] == check('q')) {
-                if (isPieceFree(arr, arr[i][helpCoordinate], i, helpCoordinate, turn, kingX, helpCoordinate, true)) {
-                    canBeProtectedByPiece = true;
-                }
-            }
-        }
-      
-        for (int i = 0; i < 8; i++) {//горизонатль
-
-            if (arr[start][i] == check('r') || arr[start][i] == check('q')) {
-                if (isPieceFree(arr, arr[start][i], start, i, turn, start, kingY, true)) {
-                    canBeProtectedByPiece = true;
-                }
-            }
-            else if (arr[start][i] == check('p')) {
-                if (turn == 'b') {
-                    if (isPieceFree(arr, arr[start][i], start, i, turn, start, start + 1, true)) {
-                        canBeProtectedByPiece = true;
-                    }
-                }
-                else if (turn == 'w') {
-                    if (isPieceFree(arr, arr[start][i], start, i, turn, start, start - 1, true)) {
-                        canBeProtectedByPiece = true;
-                    }
-                }
-            }
-
-        }
-        diagonal1 = 0;
-        diagonal2 = enemyY; 
+     
         if (mateType == 1) {
             helpCoordinate = start;
             helpCoordinate2 = kingY;
@@ -233,16 +199,82 @@ bool CheckMateCombo(char** arr, char turn, int kingX, int kingY, int enemyX, int
             helpCoordinate = kingX;
             helpCoordinate2 = start;
         }
+        else if (mateType == 3 || mateType == 4) {
+            helpCoordinate = start;
+            helpCoordinate2 = startCOL;
+
+        }
+        // start = индекс i/j поля, end  = индекс короля
+        for (int i = 0; i < 8; i++) { //вертикаль
+            if (arr[i][helpCoordinate2] == check('r') || arr[i][helpCoordinate2] == check('q') || arr[i][helpCoordinate2] == check('p')) {
+                if (arr[i][helpCoordinate2] == check('p')) {
+                    if (turn == 'w'&& i-1 == helpCoordinate) {
+                        if (isLegalMove(arr, arr[i][helpCoordinate2], i, helpCoordinate2,0, turn, ((arr[helpCoordinate][helpCoordinate2] == '=') ? '>' : ':'), helpCoordinate, helpCoordinate2, true)) {
+                            canBeProtectedByPiece = true;
+                        }
+                    }
+                    else if (turn == 'b' && i + 1 == helpCoordinate) {
+                        
+                        if (isLegalMove(arr, arr[i][helpCoordinate2], i, helpCoordinate2, 0, turn , ((arr[helpCoordinate][helpCoordinate2] == '=') ? '>' : ':'), helpCoordinate, helpCoordinate2, true)) {
+                            canBeProtectedByPiece = true;
+                        }
+                    }
+                }
+                else {
+                    if (isLegalMove(arr, arr[i][helpCoordinate2], i, helpCoordinate2, turn, ((arr[helpCoordinate][helpCoordinate2] == '=') ? '>' : ':'), helpCoordinate, helpCoordinate2, true)) {
+                        canBeProtectedByPiece = true;
+                    }
+                }
+            }
+        }
+
+        for (int i = 0; i < 8; i++) {//горизонатль
+
+            if (arr[start][i] == check('r') || arr[start][i] == check('q')) {
+                if (isLegalMove(arr, arr[start][i], start, i, turn, ((arr[start][kingY] == '=') ? '>' : ':'), start, kingY, true)) {
+                    canBeProtectedByPiece = true;
+                }
+            }
+            else if (arr[start][i] == check('p')) {
+                if (turn == 'b') {
+                    if (isLegalMove(arr, arr[start][i], start, i, turn, ((arr[start][start+1] == '=') ? '>' : ':'), start, start + 1, true)) {
+                        canBeProtectedByPiece = true;
+                    }
+                }
+                else if (turn == 'w') {
+                    if (isLegalMove(arr, arr[start][i], start, i, turn, ((arr[start][start - 1] == '=') ? '>' : ':'), start, start - 1, true)) {
+                        canBeProtectedByPiece = true;
+                    }
+                }
+            }
+
+        }
+        diagonal1 = 0;
+        diagonal2 = enemyY;
+  /*      if (mateType == 1) {
+            helpCoordinate = start;
+            helpCoordinate2 = kingY;
+        }
+        else if (mateType == 2) {
+            helpCoordinate = kingX;
+            helpCoordinate2 = start;
+        }
+        else if (mateType == 3 || mateType == 4) {
+            helpCoordinate = start;
+            helpCoordinate2 = startCOL;
+
+        }*/
+       
         diagonal2 = enemyY;
         for (int i = start; i > -1; i--) { //диагонль 0 0   8 8
             if (arr[i][diagonal2] == check('b') || arr[i][diagonal2] == check('q')) {
-                if (isPieceFree(arr, arr[i][diagonal2], i, diagonal2, turn, helpCoordinate, helpCoordinate2, true)) {
+                if (isLegalMove(arr, arr[i][diagonal2], i, diagonal2, turn, ((arr[helpCoordinate][helpCoordinate2] == '=') ? '>' : ':'), helpCoordinate, helpCoordinate2, true)) {
                     canBeProtectedByPiece = true;
                 }
             }
             else if (arr[i][diagonal2] == check('p')) {
                 if (abs(i - enemyX) == 1 && abs(diagonal2 - enemyY) == 1) {
-                    if (isPieceFree(arr, arr[i][diagonal2], i, diagonal2, turn, enemyX, enemyY, true)) {
+                    if (isLegalMove(arr, arr[i][diagonal2], i, diagonal2, turn, ((arr[enemyX][enemyY] == '=') ? '>' : ':'), enemyX, enemyY, true)) {
                         canBeProtectedByPiece = true;
                     }
                 }
@@ -250,50 +282,50 @@ bool CheckMateCombo(char** arr, char turn, int kingX, int kingY, int enemyX, int
             diagonal2--;
         }
         diagonal2 = enemyY;
-      
+
         for (int i = start; i < 8; i++) { //диагонль 0 0   8 8
 
             if (arr[i][diagonal2] == check('b') || arr[i][diagonal2] == check('q')) {
-                if (isPieceFree(arr, arr[i][diagonal2], i, diagonal2, turn, helpCoordinate, helpCoordinate2, true)) {
+                if (isLegalMove(arr, arr[i][diagonal2], i, diagonal2, turn, ((arr[helpCoordinate][helpCoordinate2] == '=') ? '>' : ':'), helpCoordinate, helpCoordinate2, true)) {
                     canBeProtectedByPiece = true;
                 }
             }
             else if (arr[i][diagonal2] == check('p')) {
                 if (abs(i - enemyX) == 1 && abs(diagonal2 - enemyY) == 1) {
-                    if (isPieceFree(arr, arr[i][diagonal2], i, diagonal2, turn, enemyX, enemyY, true)) {
+                    if (isLegalMove(arr, arr[i][diagonal2], i, diagonal2, turn, ((arr[enemyX][enemyY] == '=') ? '>' : ':'), enemyX, enemyY, true)) {
                         canBeProtectedByPiece = true;
                     }
                 }
             }
             diagonal2--;
         }
-        diagonal2 = enemyY; 
+        diagonal2 = enemyY;
 
         for (int i = start; i > -1; i--) { //диагонль 8 0   0 8
             if (arr[i][diagonal2] == check('b') || arr[i][diagonal2] == check('q')) {
-                if (isPieceFree(arr, arr[i][diagonal2], i, diagonal2, turn, helpCoordinate, helpCoordinate2, true)) {
+                if (isLegalMove(arr, arr[i][diagonal2], i, diagonal2, turn, ((arr[helpCoordinate][helpCoordinate2] == '=') ? '>' : ':'), helpCoordinate, helpCoordinate2, true)) {
                     canBeProtectedByPiece = true;
                 }
             }
             else if (arr[i][diagonal2] == check('p')) {
                 if (abs(i - enemyX) == 1 && abs(diagonal2 - enemyY) == 1) {
-                    if (isPieceFree(arr, arr[i][diagonal2], i, diagonal2, turn, enemyX, enemyY, true)) {
+                    if (isLegalMove(arr, arr[i][diagonal2], i, diagonal2, turn, ((arr[enemyX][enemyY] == '=') ? '>' : ':'), enemyX, enemyY, true)) {
                         canBeProtectedByPiece = true;
                     }
                 }
             }
             diagonal2++;
         }
-        diagonal2 = enemyY; 
+        diagonal2 = enemyY;
         for (int i = start; i < 8; i++) { //диагонль 8 0   0 8
             if (arr[i][diagonal2] == check('b') || arr[i][diagonal2] == check('q')) {
-                if (isPieceFree(arr, arr[i][diagonal2], i, diagonal2, turn, helpCoordinate, helpCoordinate2, true)) {
+                if (isLegalMove(arr, arr[i][diagonal2], i, diagonal2, turn, ((arr[helpCoordinate][helpCoordinate2] == '=') ? '>' : ':'), helpCoordinate, helpCoordinate2, true)) {
                     canBeProtectedByPiece = true;
                 }
             }
             else if (arr[i][diagonal2] == check('p')) {
                 if (abs(i - enemyX) == 1 && abs(diagonal2 - enemyY) == 1) {
-                    if (isPieceFree(arr, arr[i][diagonal2], i, diagonal2, turn, enemyX, enemyY, true)) {
+                    if (isLegalMove(arr, arr[i][diagonal2], i, diagonal2, turn, ((arr[enemyX][enemyY] == '=') ? '>' : ':'), enemyX, enemyY, true)) {
                         canBeProtectedByPiece = true;
                     }
                 }
@@ -320,7 +352,7 @@ bool CheckMateCombo(char** arr, char turn, int kingX, int kingY, int enemyX, int
             }
         }
         else if (mateType == 3) { //диагоналдб
-         
+
             if (enemyY < kingY) {
                 startCOL++;
             }
@@ -476,7 +508,7 @@ bool isPieceFree(char** arr, char piece, int FixedRow, int COL, char turn, int n
             else if (turn == 'b' && (arr[indexes[0]][j] == 'R' || arr[indexes[0]][j] == 'Q')) {
                 isFree = false; isFreeCount--;
                 if (piece == 'm') {
-                    if (CheckMateCombo(arr, turn, indexes[0], indexes[1], indexes[0],j)) {
+                    if (CheckMateCombo(arr, turn, indexes[0], indexes[1], indexes[0], j)) {
                         return false; //mate
                     }
                 }
@@ -538,8 +570,8 @@ bool isPieceFree(char** arr, char piece, int FixedRow, int COL, char turn, int n
             break;
         }
         else if (arr[i][diagonal] != '=') {
-            if (turn == 'w' && (arr[i][diagonal] == 'b' || arr[i][diagonal] == 'q' || (arr[i][diagonal] == 'p' && (i < indexes[0] && (abs(diagonal - indexes[1]) == 1))) )) {
-     
+            if (turn == 'w' && (arr[i][diagonal] == 'b' || arr[i][diagonal] == 'q' || (arr[i][diagonal] == 'p' && (i < indexes[0] && (abs(diagonal - indexes[1]) == 1))))) {
+
                 if (piece == 'm') {
                     if (CheckMateCombo(arr, turn, indexes[0], indexes[1], i, diagonal)) {
                         return false; //mate
@@ -550,7 +582,7 @@ bool isPieceFree(char** arr, char piece, int FixedRow, int COL, char turn, int n
 
             }
             else if (turn == 'b' && (arr[i][diagonal] == 'B' || arr[i][diagonal] == 'Q' || (arr[i][diagonal] == 'P' && (i > indexes[0] && (abs(diagonal - indexes[1]) == 1))))) {
-               
+
                 if (piece == 'm') {
                     if (CheckMateCombo(arr, turn, indexes[0], indexes[1], i, diagonal)) {
                         return false; //mate
@@ -582,7 +614,7 @@ bool isPieceFree(char** arr, char piece, int FixedRow, int COL, char turn, int n
         }
         else if (arr[i][diagonal] != '=') {
             if (turn == 'w' && (arr[i][diagonal] == 'b' || arr[i][diagonal] == 'q' || (arr[i][diagonal] == 'p' && (i < indexes[0] && (abs(diagonal - indexes[1]) == 1))))) {
-               
+
                 if (piece == 'm') {
                     if (CheckMateCombo(arr, turn, indexes[0], indexes[1], i, diagonal)) {
                         return false; //mate
@@ -600,7 +632,7 @@ bool isPieceFree(char** arr, char piece, int FixedRow, int COL, char turn, int n
                 }
                 isFree = false; isFreeCount--;
                 break;
-             
+
             }
             else {
                 isFree = true;
@@ -609,8 +641,8 @@ bool isPieceFree(char** arr, char piece, int FixedRow, int COL, char turn, int n
         }
         diagonal--;
     }
-      //конец 1 диагонали
-      //диагональ Kx Ky (8 0) = 0 8
+    //конец 1 диагонали
+    //диагональ Kx Ky (8 0) = 0 8
     diagonal = indexes[1] + 1;
     for (int i = indexes[0] - 1; i > -1; i--) {
         isRan = true;
@@ -632,7 +664,7 @@ bool isPieceFree(char** arr, char piece, int FixedRow, int COL, char turn, int n
                 }
                 isFree = false; isFreeCount--;
                 break;
-            
+
             }
             else if (turn == 'b' && (arr[i][diagonal] == 'B' || arr[i][diagonal] == 'Q' || (arr[i][diagonal] == 'P' && (i > indexes[0] && (abs(diagonal - indexes[1]) == 1))))) {
                 if (piece == 'm') {
@@ -663,8 +695,8 @@ bool isPieceFree(char** arr, char piece, int FixedRow, int COL, char turn, int n
             break;
         }
         else if (arr[i][diagonal] != '=') {
-            if (turn == 'w' && (arr[i][diagonal] == 'b' || arr[i][diagonal] == 'q' || (arr[i][diagonal] == 'p' && (i < indexes[0] && (abs(diagonal - indexes[1]) == 1))))){
-                
+            if (turn == 'w' && (arr[i][diagonal] == 'b' || arr[i][diagonal] == 'q' || (arr[i][diagonal] == 'p' && (i < indexes[0] && (abs(diagonal - indexes[1]) == 1))))) {
+
                 if (piece == 'm') {
                     if (CheckMateCombo(arr, turn, indexes[0], indexes[1], i, diagonal)) {
                         return false; //mate
@@ -672,10 +704,10 @@ bool isPieceFree(char** arr, char piece, int FixedRow, int COL, char turn, int n
                 }
                 isFree = false; isFreeCount--;
                 break;
-           
+
             }
             else if (turn == 'b' && (arr[i][diagonal] == 'B' || arr[i][diagonal] == 'Q' || (arr[i][diagonal] == 'P' && (i > indexes[0] && (abs(diagonal - indexes[1]) == 1))))) {
-              
+
                 if (piece == 'm') {
                     if (CheckMateCombo(arr, turn, indexes[0], indexes[1], i, diagonal)) {
                         return false; //mate
@@ -683,7 +715,7 @@ bool isPieceFree(char** arr, char piece, int FixedRow, int COL, char turn, int n
                 }
                 isFree = false; isFreeCount--;
                 break;
-          
+
             }
             else {
                 isFree = true;
@@ -716,7 +748,7 @@ bool isPieceFree(char** arr, char piece, int FixedRow, int COL, char turn, int n
     }
 }
 
-bool isLegalMove(char** arr, char piece, int FixedRow, int COL, int fieldSide, char turn, char moveType, int newFixedRow, int NewCOL) {
+bool isLegalMove(char** arr, char piece, int FixedRow, int COL, int fieldSide, char turn, char moveType, int newFixedRow, int NewCOL, bool mateCheck) {
     if (turn == 'w') {
         piece = toupper(piece);
     }
@@ -730,15 +762,15 @@ bool isLegalMove(char** arr, char piece, int FixedRow, int COL, int fieldSide, c
             if (arr[FixedRow][COL] == piece) {
 
                 if (moveType == '>' && arr[newFixedRow][NewCOL] == '=') {
-                    return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL);
+                    return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL, mateCheck);
 
                 }
                 else if (moveType == ':' && arr[newFixedRow][NewCOL] != '=') {
                     if (turn == 'w' && islower(arr[newFixedRow][NewCOL])) {
-                        return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL);
+                        return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL, mateCheck);
                     }
                     else if (turn == 'b' && isupper(arr[newFixedRow][NewCOL])) {
-                        return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL);
+                        return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL, mateCheck);
                     }
                 }
             }
@@ -747,17 +779,17 @@ bool isLegalMove(char** arr, char piece, int FixedRow, int COL, int fieldSide, c
     case 'P': //pawn 
         if (moveType == '>') {
             if ((arr[FixedRow][COL] == '=') && (arr[FixedRow + (fieldSide)][COL] == (char)tolower(piece) || arr[FixedRow + (fieldSide)][COL] == (char)toupper(piece))) { //проверка если ход легален (если пешка есть на поле)
-                return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL);
+                return isPieceFree(arr, piece, FixedRow + (fieldSide), COL, turn, FixedRow, COL, mateCheck);
             }
         }
         else {
             if (arr[FixedRow][COL] == piece && (abs(FixedRow - newFixedRow) == 1 && abs(COL - NewCOL) == 1)) { //проверка если ход легален 
 
                 if (turn == 'w' && islower(arr[newFixedRow][NewCOL])) {
-                    return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL);
+                    return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL, mateCheck);
                 }
                 else if (turn == 'b' && isupper(arr[newFixedRow][NewCOL])) {
-                    return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL);
+                    return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL, mateCheck);
                 }
             }
         }
@@ -766,17 +798,17 @@ bool isLegalMove(char** arr, char piece, int FixedRow, int COL, int fieldSide, c
         if (moveType == '>') {
             if ((arr[FixedRow][COL] == piece) && (abs(newFixedRow - FixedRow) == 2 && abs(NewCOL - COL) == 1 || abs(newFixedRow - FixedRow) == 1 && abs(NewCOL - COL) == 2)) {
                 if (arr[newFixedRow][NewCOL] == '=') {
-                    return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL);
+                    return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL, mateCheck);
                 }
             }
         }
         else {
             if (arr[FixedRow][COL] == piece && arr[newFixedRow][NewCOL] != '=') { //проверка если ход легален 
                 if (turn == 'w' && islower(arr[newFixedRow][NewCOL])) {
-                    return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL);
+                    return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL, mateCheck);
                 }
                 else if (turn == 'b' && isupper(arr[newFixedRow][NewCOL])) {
-                    return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL);
+                    return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL, mateCheck);
                 }
             }
         }
@@ -809,7 +841,7 @@ bool isLegalMove(char** arr, char piece, int FixedRow, int COL, int fieldSide, c
                     }
                 }
                 else if (FixedRow - newFixedRow < 0) {
-                    for (int i = newFixedRow-1; i > FixedRow; i--) {//снизу вверх
+                    for (int i = newFixedRow - 1; i > FixedRow; i--) {//снизу вверх
                         if (arr[i][NewCOL] != '=') {
                             return false;
                         }
@@ -821,10 +853,10 @@ bool isLegalMove(char** arr, char piece, int FixedRow, int COL, int fieldSide, c
                 if (arr[FixedRow][COL] == piece) { //проверка если ход легален 
 
                     if (turn == 'w' && islower(arr[newFixedRow][NewCOL])) {
-                        return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL);
+                        return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL, mateCheck);
                     }
                     else if (turn == 'b' && isupper(arr[newFixedRow][NewCOL])) {
-                        return true;
+                        return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL, mateCheck);
                     }
                     else {
                         return false;
@@ -834,7 +866,7 @@ bool isLegalMove(char** arr, char piece, int FixedRow, int COL, int fieldSide, c
             else if ((moveType == '>') && (arr[newFixedRow][NewCOL] != '=')) {
                 return false;
             }
-            return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL);
+            return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL, mateCheck);
         }
         break;
     case 'B':
@@ -882,10 +914,10 @@ bool isLegalMove(char** arr, char piece, int FixedRow, int COL, int fieldSide, c
                 if (arr[FixedRow][COL] == piece) { //проверка если ход легален 
 
                     if (turn == 'w' && islower(arr[newFixedRow][NewCOL])) {
-                        return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL);
+                        return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL, mateCheck);
                     }
                     else if (turn == 'b' && isupper(arr[newFixedRow][NewCOL])) {
-                        return true;
+                        return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL, mateCheck);
                     }
                     else {
                         return false;
@@ -937,10 +969,10 @@ bool isLegalMove(char** arr, char piece, int FixedRow, int COL, int fieldSide, c
             if (moveType == ':') {
                 if (arr[FixedRow][COL] == piece) { //проверка если ход легален 
                     if (turn == 'w' && islower(arr[newFixedRow][NewCOL])) {
-                        return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL);
+                        return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL, mateCheck);
                     }
                     else if (turn == 'b' && isupper(arr[newFixedRow][NewCOL])) {
-                        return true;
+                        return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL, mateCheck);
                     }
                     else {
                         return false;
@@ -950,7 +982,7 @@ bool isLegalMove(char** arr, char piece, int FixedRow, int COL, int fieldSide, c
             else if ((moveType == '>') && (arr[newFixedRow][NewCOL] != '=')) {
                 return false;
             }
-            return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL);
+            return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL, mateCheck);
         }
         else  if ((arr[FixedRow][COL] == piece) && (abs(FixedRow - newFixedRow) == abs(COL - NewCOL))) { //диагональный ход
             int COLhelp = COL;
@@ -995,10 +1027,10 @@ bool isLegalMove(char** arr, char piece, int FixedRow, int COL, int fieldSide, c
             if (moveType == ':') {
                 if (arr[FixedRow][COL] == piece) { //проверка если ход легален 
                     if (turn == 'w' && islower(arr[newFixedRow][NewCOL])) {
-                        return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL);
+                        return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL, mateCheck);
                     }
                     else if (turn == 'b' && isupper(arr[newFixedRow][NewCOL])) {
-                        return true;
+                        return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL, mateCheck);
                     }
                     else {
                         return false;
@@ -1008,7 +1040,7 @@ bool isLegalMove(char** arr, char piece, int FixedRow, int COL, int fieldSide, c
             else if ((moveType == '>') && (arr[newFixedRow][NewCOL] != '=')) {
                 return false;
             }
-            return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL);
+            return isPieceFree(arr, piece, FixedRow, COL, turn, newFixedRow, NewCOL, mateCheck);
         }
         break;
     }
@@ -1101,7 +1133,7 @@ bool Move(char** arr, char move[], char turn) {
         }
 
         COL = tolower(move[0]) - 'a';
-      
+
         if (isLegalMove(arr, 'P', FixedRow, COL, fieldSide, turn, '>')) { //проверка на легальность хода
             switch (turn) {
             case 'w': //white
@@ -1177,7 +1209,6 @@ void main()
     char move = 'w';
     while (true) {
         cin >> mov;
-
         if (Move(board, mov, move)) { //делаем ход и проверяем если он был легальный
             ShowBoard(board);
             if (move == 'w') {
