@@ -1,6 +1,16 @@
 ﻿#include<iostream>
+#include <string>
 using namespace std;
-bool isPieceFree(char** arr, char piece, int FixedRow, int COL, char turn, int newFixedRow, int NewCOL, bool mateCheck = false);
+bool WhiteKingCanCastling = true;
+bool BlackKingCanCastling = true;
+
+bool WhiteLeftRookCanCastling = true;
+bool WhiteRightRookCanCastling = true;
+
+bool BlackLeftRookCanCastling = true;
+bool BlackRightRookCanCastling = true;
+
+bool isPieceFree(char** arr, char piece, int FixedRow, int COL, char turn, int newFixedRow, int NewCOL, bool mateCheck = false, bool castlingCheck = false);
 bool isLegalMove(char** arr, char piece, int FixedRow, int COL, int fieldSide, char turn, char moveType, int newFixedRow = 0, int NewCOL = 0, bool mateCheck = false);
 void generate(char* arr[]) {
     for (int i = 0; i < 8; i++) {
@@ -46,7 +56,7 @@ void ShowBoard(char** arr) {
     cout << endl << "\t   " << alphacords << endl << endl;
 }
 
-bool Find(char* arr, char needle) {
+bool Find(string arr, char needle) {
     int size = sizeof(arr) / sizeof(arr[0]);
     for (int i = 0; i < size; i++) {
         if (arr[i] == needle) {
@@ -190,7 +200,7 @@ bool CheckMateCombo(char** arr, char turn, int kingX, int kingY, int enemyX, int
               index2 = kingY;
           }*/
         helpCoordinate = start;
-     
+
         if (mateType == 1) {
             helpCoordinate = start;
             helpCoordinate2 = kingY;
@@ -208,14 +218,14 @@ bool CheckMateCombo(char** arr, char turn, int kingX, int kingY, int enemyX, int
         for (int i = 0; i < 8; i++) { //вертикаль
             if (arr[i][helpCoordinate2] == check('r') || arr[i][helpCoordinate2] == check('q') || arr[i][helpCoordinate2] == check('p')) {
                 if (arr[i][helpCoordinate2] == check('p')) {
-                    if (turn == 'w'&& i-1 == helpCoordinate) {
-                        if (isLegalMove(arr, arr[i][helpCoordinate2], i, helpCoordinate2,0, turn, ((arr[helpCoordinate][helpCoordinate2] == '=') ? '>' : ':'), helpCoordinate, helpCoordinate2, true)) {
+                    if (turn == 'w' && i - 1 == helpCoordinate) {
+                        if (isLegalMove(arr, arr[i][helpCoordinate2], i, helpCoordinate2, 0, turn, ((arr[helpCoordinate][helpCoordinate2] == '=') ? '>' : ':'), helpCoordinate, helpCoordinate2, true)) {
                             canBeProtectedByPiece = true;
                         }
                     }
                     else if (turn == 'b' && i + 1 == helpCoordinate) {
-                        
-                        if (isLegalMove(arr, arr[i][helpCoordinate2], i, helpCoordinate2, 0, turn , ((arr[helpCoordinate][helpCoordinate2] == '=') ? '>' : ':'), helpCoordinate, helpCoordinate2, true)) {
+
+                        if (isLegalMove(arr, arr[i][helpCoordinate2], i, helpCoordinate2, 0, turn, ((arr[helpCoordinate][helpCoordinate2] == '=') ? '>' : ':'), helpCoordinate, helpCoordinate2, true)) {
                             canBeProtectedByPiece = true;
                         }
                     }
@@ -237,7 +247,7 @@ bool CheckMateCombo(char** arr, char turn, int kingX, int kingY, int enemyX, int
             }
             else if (arr[start][i] == check('p')) {
                 if (turn == 'b') {
-                    if (isLegalMove(arr, arr[start][i], start, i, turn, ((arr[start][start+1] == '=') ? '>' : ':'), start, start + 1, true)) {
+                    if (isLegalMove(arr, arr[start][i], start, i, turn, ((arr[start][start + 1] == '=') ? '>' : ':'), start, start + 1, true)) {
                         canBeProtectedByPiece = true;
                     }
                 }
@@ -251,20 +261,20 @@ bool CheckMateCombo(char** arr, char turn, int kingX, int kingY, int enemyX, int
         }
         diagonal1 = 0;
         diagonal2 = enemyY;
-  /*      if (mateType == 1) {
-            helpCoordinate = start;
-            helpCoordinate2 = kingY;
-        }
-        else if (mateType == 2) {
-            helpCoordinate = kingX;
-            helpCoordinate2 = start;
-        }
-        else if (mateType == 3 || mateType == 4) {
-            helpCoordinate = start;
-            helpCoordinate2 = startCOL;
+        /*      if (mateType == 1) {
+                  helpCoordinate = start;
+                  helpCoordinate2 = kingY;
+              }
+              else if (mateType == 2) {
+                  helpCoordinate = kingX;
+                  helpCoordinate2 = start;
+              }
+              else if (mateType == 3 || mateType == 4) {
+                  helpCoordinate = start;
+                  helpCoordinate2 = startCOL;
 
-        }*/
-       
+              }*/
+
         diagonal2 = enemyY;
         for (int i = start; i > -1; i--) { //диагонль 0 0   8 8
             if (arr[i][diagonal2] == check('b') || arr[i][diagonal2] == check('q')) {
@@ -379,7 +389,7 @@ bool CheckMateCombo(char** arr, char turn, int kingX, int kingY, int enemyX, int
     }
 }
 
-bool isPieceFree(char** arr, char piece, int FixedRow, int COL, char turn, int newFixedRow, int NewCOL, bool mateCheck) {
+bool isPieceFree(char** arr, char piece, int FixedRow, int COL, char turn, int newFixedRow, int NewCOL, bool mateCheck, bool castlingCheck) {
     int indexes[2];
     if (piece == 'm') {
         if (turn == 'w') {
@@ -735,6 +745,31 @@ bool isPieceFree(char** arr, char piece, int FixedRow, int COL, char turn, int n
         isFreeCount--;
     }
     if (isFreeCount == 9) {
+        if (castlingCheck == false) {
+            if (piece == 'k') {
+                BlackKingCanCastling = false;
+            }
+            else if (piece == 'K') {
+                WhiteKingCanCastling = false;
+            }
+            else if (turn == 'w' && piece == 'R') {
+                if (FixedRow == 7 && COL == 7) {
+                    WhiteRightRookCanCastling = false;
+                }
+                else if (FixedRow == 7 && COL == 0) {
+                    WhiteLeftRookCanCastling = false;
+                }
+            }
+            else if (turn == 'b' && piece == 'r') {
+                if (FixedRow == 0 && COL == 7) {
+                    BlackRightRookCanCastling = false;
+                }
+                else if (FixedRow == 0 && COL == 0) {
+                    BlackLeftRookCanCastling = false;
+                }
+            }
+        }
+        
         return true;
     }
     else {
@@ -1047,7 +1082,7 @@ bool isLegalMove(char** arr, char piece, int FixedRow, int COL, int fieldSide, c
     return false;
 }
 
-bool Move(char** arr, char move[], char turn) {
+bool Move(char** arr, string move, char turn) {
     int ROW = (move[1] - '0'); //ЦИФРА
     int COL = 0; //БУКВА
     int FixedRow = 8 - ROW;
@@ -1061,7 +1096,7 @@ bool Move(char** arr, char move[], char turn) {
     }
 
     if (Find(move, ':')) { //attacking
-        if (strlen(move) == 5) { //pawn attack
+        if (move.length() == 5) { //pawn attack
 
             int NewFixedRow = 8 - (move[4] - '0');
 
@@ -1093,7 +1128,7 @@ bool Move(char** arr, char move[], char turn) {
 
 
         }
-        else if (strlen(move) == 6) {
+        else if (move.length() == 6) {
             FixedRow = 8 - (move[2] - '0');
             int NewFixedRow = 8 - (move[5] - '0');
             char piece = move[0];
@@ -1125,7 +1160,7 @@ bool Move(char** arr, char move[], char turn) {
 
         }
     }
-    else if (strlen(move) == 2) { //pawn default move
+    else if (move.length() == 2) { //pawn default move
 
         if (FixedRow < 0 || 7 < FixedRow) {
             cout << "ILLEGAL MOVE!!!" << endl;
@@ -1153,7 +1188,7 @@ bool Move(char** arr, char move[], char turn) {
 
 
     }
-    else if (strlen(move) == 6) {
+    else if (move.length() == 6) {
         FixedRow = 8 - (move[2] - '0');
         int NewFixedRow = 8 - (move[5] - '0');
         char piece = move[0];
@@ -1184,8 +1219,250 @@ bool Move(char** arr, char move[], char turn) {
         }
 
     }
+    else if (move == "o-o" || move == "o-o-o" || move == "O-O" || move == "O-O-O") { //cast;ling
+        int (*check)(int _C);
+      
+        bool kingCastling;
+        bool rookCastling;
+        int rookX, rookY;
+        int kingX, kingY;
+        int s, e, start, end;
+        char king;
+        if (turn == 'w') {
+            king = 'K';
+            check = tolower;
+            kingX = 7; kingY = 4;
+            
+            if (WhiteKingCanCastling == false) {
+                cout << endl << "Нелегальный ход! Ваш король уже ходил и больше не может рокироваться!" << endl;
+                return false;
+            }
+            kingCastling = WhiteKingCanCastling;
+
+            if (move == "O-O" || move == "o-o") {
+                s = kingY + 1;
+                start = kingY + 1;
+                if (WhiteRightRookCanCastling == false) {
+                    cout << endl << "Нелегальный ход! Данная ладья уже ходила и больше не может рокироваться" << endl;
+                    return false;
+                }
+                rookX = 7; rookY = 7;
+                
+                rookCastling = WhiteRightRookCanCastling;
+            }
+            else if (move == "O-O-O" || move == "o-o-o"){
+         
+                s = kingY - 1;
+                start = kingY - 1;
+                if (WhiteLeftRookCanCastling == false) {
+                    cout << endl << "Нелегальный ход! Данная ладья уже ходила и больше не может рокироваться" << endl;
+                    return false;
+                }
+                rookX = 7; rookY = 0;
+                rookCastling = WhiteLeftRookCanCastling;
+            }
+            
+           
+        }
+        else {
+            king = 'k';
+            check = toupper;
+            kingX = 0; kingY = 4;
+            if (BlackKingCanCastling == false) {
+                cout << endl<< "Нелегальный ход! Ваш король уже ходил и больше не может рокироваться!" << endl;
+                return false;
+            }
+            kingCastling = BlackKingCanCastling;
+
+            if (move == "O-O" || move == "o-o") {
+                s = kingY + 1;
+                start = kingY + 1;
+                if (BlackRightRookCanCastling == false) {
+                    cout << endl << "Нелегальный ход! Данная ладья уже ходила и больше не может рокироваться" << endl;
+                    return false;
+                }
+                rookX = 0; rookY = 7;
+                rookCastling = BlackRightRookCanCastling;
+            }
+            else if (move == "O-O-O" || move == "o-o-o") {
+                s = kingY - 1;
+                start = kingY - 1;
+                if (BlackLeftRookCanCastling == false) {
+                    cout << endl << "Нелегальный ход! Данная ладья уже ходила и больше не может рокироваться" << endl;
+                    return false;
+                }
+                rookX = 0; rookY = 0;
+                rookCastling = BlackLeftRookCanCastling;
+            }
+
+        }
+
+        
+        e = rookY; end = rookY;
+        bool canCastling = true;
+        int diagonal1 = 0;
+        int diagonal2 = 0;
+        if (isPieceFree(arr, king, kingX, kingY, turn, kingX, kingY, false, true) == false) {
+            cout << endl <<"Рокировка невозможна, король под шахом" << endl;
+            return false;
+        }
+        int coords[2] = { 0,0 };
+        while ((s > e) ? (start > end) : (start < end)) {//проход по каждому  полю
+         
+            for (int i = (kingX == 7) ? kingX - 1 : kingX + 1; (kingX == 7) ? i > -1 : i < 8; (kingX == 7) ? i-- : i++) { //вертикаль
+                if (arr[i][start] == check('r') || arr[i][start] == check('q') || arr[i][start] == check('p')) {
+                    if (arr[i][start] == check('p')) {
+                        if (turn == 'w' && i - 1 == kingX) {
+                            canCastling = false;
+                        }
+                        else if (turn == 'b' && i + 1 == kingX) {
+                            canCastling = false;
+                        }
+                    }
+                    else {
+                        canCastling = false;
+                    }
+                }
+                else if (arr[i][start] != '=') {
+                    break;
+                }
+             
+            }
+
+            for (int i = start; (s<e)? (i<e) : (i>e); (s<e) ? (i++) : (i--)) {//горизонатль
+
+                if (arr[kingX][i] != '=') {
+                    
+                    canCastling = false;
+                    break;
+                }
+
+            }
+            diagonal1 = 0;
+            diagonal2 = start;
+
+            for (int i = (kingX == 7) ? kingX - 1 : kingX + 1; (kingX == 7) ? i > -1 : i < 8; (kingX == 7) ? i-- : i++) { //диагонль 0 0   8 8
+                if (arr[i][diagonal2] == check('b') || arr[i][diagonal2] == check('q')) {
+
+                    canCastling = false;
+
+                }
+                else if (arr[i][diagonal2] == check('p')) {
+                    if (abs(i - kingX) == 1 && abs(diagonal2 - start) == 1) {
+                        canCastling = false;
+                    }
+                }
+                else if (arr[i][diagonal2]!= '=') {
+                    break;
+                }
+
+                diagonal2++;
+            }
+            
+
+            diagonal2 = start-1;
+
+            for (int i = (kingX == 7) ? kingX-1 :kingX+1; (kingX == 7) ? i > -1 : i<8; (kingX == 7) ? i--: i++) { //диагонль 0 0   8 8
+
+                if (arr[i][diagonal2] == check('b') || arr[i][diagonal2] == check('q')) {
+                    
+                    canCastling = false;
+                }
+                else if (arr[i][diagonal2] == check('p')) {
+                    if (abs(i - kingX) == 1 && abs(diagonal2 - start) == 1) {
+                        
+                        canCastling = false;
+                        
+                    }
+                }
+                else if (arr[i][diagonal2] != '=') {
+                    break;
+                }
+                diagonal2--;
+            }
+            diagonal2 = start+1;
+
+            //for (int i = (kingX == 7) ? kingX - 1 : kingX + 1; i < 8; (kingX == 7) ? i-- : i++) { //диагонль 8 0   0 8
+            //    if (arr[i][diagonal2] == check('b') || arr[i][diagonal2] == check('q')) {
+            //        canCastling = false;
+            //    }
+            //    else if (arr[i][diagonal2] == check('p')) {
+            //        if (abs(i - kingX) == 1 && abs(diagonal2 - start) == 1) {
+            //            canCastling = false;
+            //        }
+            //    }
+            //    else if (arr[i][diagonal2] != '=') {
+            //        break;
+            //    }
+            //    diagonal2++;
+            //}
+            //diagonal2 = start+1;
+            //for (int i = 1; i < 8; i++) { //диагонль 8 0   0 8
+            //    if (arr[i][diagonal2] == check('b') || arr[i][diagonal2] == check('q')) {
+            //        canCastling = false;
+            //    }
+            //    else if (arr[i][diagonal2] == check('p')) {
+            //        if (abs(i - kingX) == 1 && abs(diagonal2 - start) == 1) {
+            //            canCastling = false;
+            //        }
+            //    }
+            //    else if (arr[i][diagonal2] != '=') {
+            //        break;
+            //    }
+            //    diagonal2++;
+            //}
+            
+            if (isKnightAttacking(arr, kingX, start, turn, coords, false)) {
+                canCastling = false;
+            }
+            
+            if (s > e) {
+                start--;
+            }
+            else {
+                start++;
+            }
+        }
+        if (canCastling) {
+            if (turn == 'w') { //0-0
+                WhiteKingCanCastling = false;
+                
+                arr[7][7] = '=';
+                arr[7][4] = '=';
+                if (rookY == 7) {//0-0
+                    arr[7][6] = 'K';
+                    arr[7][5] = 'R';
+                }
+                else {//0-0-0
+                    arr[7][2] = 'K';
+                    arr[7][3] = 'R';
+                }
+            }
+            else if (turn == 'b') { //0-0
+                BlackKingCanCastling = false;
+                arr[0][7] = '=';
+                arr[0][4] = '=';
+                if (rookY == 7) {//0-0
+                    arr[0][6] = 'K';
+                    arr[0][5] = 'R';
+                }
+                else {//0-0-0
+                    arr[0][2] = 'K';
+                    arr[0][3] = 'R';
+                }
+            }
+      
+
+            return true;
+        }
+        else {
+            cout << endl <<"вы не можете сделать данную рокировку" << endl;
+            return false;
+        }
+    }
     else {
         return false;
+        
     }
     return false;
 }
@@ -1205,7 +1482,7 @@ void main()
     generate(board);
     ShowBoard(board);
 
-    char mov[8];
+    string mov;
     char move = 'w';
     while (true) {
         cin >> mov;
