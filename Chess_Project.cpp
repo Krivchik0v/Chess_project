@@ -769,7 +769,7 @@ bool isPieceFree(char** arr, char piece, int FixedRow, int COL, char turn, int n
                 }
             }
         }
-        
+
         return true;
     }
     else {
@@ -1221,7 +1221,7 @@ bool Move(char** arr, string move, char turn) {
     }
     else if (move == "o-o" || move == "o-o-o" || move == "O-O" || move == "O-O-O") { //cast;ling
         int (*check)(int _C);
-      
+
         bool kingCastling;
         bool rookCastling;
         int rookX, rookY;
@@ -1232,7 +1232,7 @@ bool Move(char** arr, string move, char turn) {
             king = 'K';
             check = tolower;
             kingX = 7; kingY = 4;
-            
+
             if (WhiteKingCanCastling == false) {
                 cout << endl << "Нелегальный ход! Ваш король уже ходил и больше не может рокироваться!" << endl;
                 return false;
@@ -1247,11 +1247,11 @@ bool Move(char** arr, string move, char turn) {
                     return false;
                 }
                 rookX = 7; rookY = 7;
-                
+
                 rookCastling = WhiteRightRookCanCastling;
             }
-            else if (move == "O-O-O" || move == "o-o-o"){
-         
+            else if (move == "O-O-O" || move == "o-o-o") {
+
                 s = kingY - 1;
                 start = kingY - 1;
                 if (WhiteLeftRookCanCastling == false) {
@@ -1261,15 +1261,15 @@ bool Move(char** arr, string move, char turn) {
                 rookX = 7; rookY = 0;
                 rookCastling = WhiteLeftRookCanCastling;
             }
-            
-           
+
+
         }
         else {
             king = 'k';
             check = toupper;
             kingX = 0; kingY = 4;
             if (BlackKingCanCastling == false) {
-                cout << endl<< "Нелегальный ход! Ваш король уже ходил и больше не может рокироваться!" << endl;
+                cout << endl << "Нелегальный ход! Ваш король уже ходил и больше не может рокироваться!" << endl;
                 return false;
             }
             kingCastling = BlackKingCanCastling;
@@ -1297,18 +1297,18 @@ bool Move(char** arr, string move, char turn) {
 
         }
 
-        
+
         e = rookY; end = rookY;
         bool canCastling = true;
         int diagonal1 = 0;
         int diagonal2 = 0;
         if (isPieceFree(arr, king, kingX, kingY, turn, kingX, kingY, false, true) == false) {
-            cout << endl <<"Рокировка невозможна, король под шахом" << endl;
+            cout << endl << "Рокировка невозможна, король под шахом" << endl;
             return false;
         }
         int coords[2] = { 0,0 };
         while ((s > e) ? (start > end) : (start < end)) {//проход по каждому  полю
-         
+
             for (int i = (kingX == 7) ? kingX - 1 : kingX + 1; (kingX == 7) ? i > -1 : i < 8; (kingX == 7) ? i-- : i++) { //вертикаль
                 if (arr[i][start] == check('r') || arr[i][start] == check('q') || arr[i][start] == check('p')) {
                     if (arr[i][start] == check('p')) {
@@ -1326,13 +1326,13 @@ bool Move(char** arr, string move, char turn) {
                 else if (arr[i][start] != '=') {
                     break;
                 }
-             
+
             }
 
-            for (int i = start; (s<e)? (i<e) : (i>e); (s<e) ? (i++) : (i--)) {//горизонатль
+            for (int i = start; (s < e) ? (i < e) : (i > e); (s < e) ? (i++) : (i--)) {//горизонатль
 
                 if (arr[kingX][i] != '=') {
-                    
+
                     canCastling = false;
                     break;
                 }
@@ -1352,27 +1352,27 @@ bool Move(char** arr, string move, char turn) {
                         canCastling = false;
                     }
                 }
-                else if (arr[i][diagonal2]!= '=') {
+                else if (arr[i][diagonal2] != '=') {
                     break;
                 }
 
                 diagonal2++;
             }
-            
 
-            diagonal2 = start-1;
 
-            for (int i = (kingX == 7) ? kingX-1 :kingX+1; (kingX == 7) ? i > -1 : i<8; (kingX == 7) ? i--: i++) { //диагонль 0 0   8 8
+            diagonal2 = start - 1;
+
+            for (int i = (kingX == 7) ? kingX - 1 : kingX + 1; (kingX == 7) ? i > -1 : i < 8; (kingX == 7) ? i-- : i++) { //диагонль 0 0   8 8
 
                 if (arr[i][diagonal2] == check('b') || arr[i][diagonal2] == check('q')) {
-                    
+
                     canCastling = false;
                 }
                 else if (arr[i][diagonal2] == check('p')) {
                     if (abs(i - kingX) == 1 && abs(diagonal2 - start) == 1) {
-                        
+
                         canCastling = false;
-                        
+
                     }
                 }
                 else if (arr[i][diagonal2] != '=') {
@@ -1380,7 +1380,7 @@ bool Move(char** arr, string move, char turn) {
                 }
                 diagonal2--;
             }
-            diagonal2 = start+1;
+            diagonal2 = start + 1;
 
             //for (int i = (kingX == 7) ? kingX - 1 : kingX + 1; i < 8; (kingX == 7) ? i-- : i++) { //диагонль 8 0   0 8
             //    if (arr[i][diagonal2] == check('b') || arr[i][diagonal2] == check('q')) {
@@ -1411,11 +1411,11 @@ bool Move(char** arr, string move, char turn) {
             //    }
             //    diagonal2++;
             //}
-            
+
             if (isKnightAttacking(arr, kingX, start, turn, coords, false)) {
                 canCastling = false;
             }
-            
+
             if (s > e) {
                 start--;
             }
@@ -1426,7 +1426,7 @@ bool Move(char** arr, string move, char turn) {
         if (canCastling) {
             if (turn == 'w') { //0-0
                 WhiteKingCanCastling = false;
-                
+
                 arr[7][7] = '=';
                 arr[7][4] = '=';
                 if (rookY == 7) {//0-0
@@ -1451,18 +1451,18 @@ bool Move(char** arr, string move, char turn) {
                     arr[0][3] = 'R';
                 }
             }
-      
+
 
             return true;
         }
         else {
-            cout << endl <<"вы не можете сделать данную рокировку" << endl;
+            cout << endl << "вы не можете сделать данную рокировку" << endl;
             return false;
         }
     }
     else {
         return false;
-        
+
     }
     return false;
 }
@@ -1480,10 +1480,24 @@ void main()
         board[i] = new char[8];
     }
     generate(board);
-    ShowBoard(board);
+  
 
     string mov;
     char move = 'w';
+    int answer;
+    cout << "Chess game." << endl;
+    cout << "To start game input 1 or any other number, to view how to play input 2: ";
+    cin >> answer;
+    if (answer == 2) {
+        cout << "the game uses algebraic notation, but with some differences, for example, if we want to move a pawn from a2 to a3, we will write a3" << endl << endl;
+        cout << "if we want to attack b3 with a pawn, we will write a2:b3, if we want to move for example, with a rook or another piece, we will write the coordinates of the piece's field and the piece itself" << endl << endl;
+        cout << "for example, if our rook is on the b2 field and we move to resemble b7, we will write Rb2>b7 if we want to attack the b7 field, we will use : instead of > " << endl << endl;
+        cout << endl << endl;
+        cout << "To start play input any number:";
+        cin >> answer;
+    }
+    ShowBoard(board);
+
     while (true) {
         cin >> mov;
         if (Move(board, mov, move)) { //делаем ход и проверяем если он был легальный
@@ -1495,7 +1509,13 @@ void main()
                 move = 'w';
             }
             if (isPieceFree(board, 'm', 0, 0, move, 0, 0) == false) {
-                cout << "МАТ!!!" << endl;
+                cout << "MATE!!!";
+                if (move == 'w') {
+                    cout << " Black wins!" << endl;
+                }
+                else {
+                    cout << " White wins!" << endl;
+                }
                 break;
             }
         }
